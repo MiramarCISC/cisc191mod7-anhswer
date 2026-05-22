@@ -5,13 +5,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MatchViewModel {
 
     private String matchId;
+
     private final Player player = new Player("Player");
     private final Player opponent = new Player("Opponent");
+
     private boolean matchOver;
     private String winnerName = "";
 
-    // TODO 7: Make this shared counter thread-safe.
-    // Use either an AtomicInteger field or synchronized methods so background tasks cannot lose updates.
     private final AtomicInteger completedMatchCount = new AtomicInteger(0);
 
     public String getMatchId() {
@@ -50,17 +50,8 @@ public class MatchViewModel {
         return completedMatchCount.get();
     }
 
-    public void resetCompletedMatchCount() {
-        completedMatchCount.set(0);
-    }
-
     /**
-     * TODO 7: Complete this method using thread-safe programming.
-     *
-     * Requirements:
-     * - Increase completed match count exactly once per call
-     * - Store winner name safely
-     * - Mark match as over
+     * Thread-safe update for completed matches.
      */
     public synchronized void recordCompletedMatchThreadSafely(String winnerName) {
         completedMatchCount.incrementAndGet();
@@ -77,16 +68,7 @@ public class MatchViewModel {
     }
 
     /**
-     * TODO 2: Complete this MVC helper.
-     *
-     * Expected:
-     * Match match-001: Ada vs Bot (Hard, ranked)
-     *
-     * Rules:
-     * - "No match" if matchId is null/blank
-     * - Use player/opponent names
-     * - "Normal" if difficulty blank
-     * - ranked vs casual
+     * Build match summary for UI.
      */
     public String buildMatchSummary(String difficulty, boolean ranked) {
 
@@ -100,7 +82,9 @@ public class MatchViewModel {
         String rankedLabel = ranked ? "ranked" : "casual";
 
         return "Match " + matchId + ": "
-                + player.getName() + " vs " + opponent.getName()
+                + player.getName()
+                + " vs "
+                + opponent.getName()
                 + " (" + resolvedDifficulty + ", " + rankedLabel + ")";
     }
 

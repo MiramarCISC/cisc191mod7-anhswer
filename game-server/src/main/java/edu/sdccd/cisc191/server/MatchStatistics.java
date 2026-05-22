@@ -3,20 +3,19 @@ package edu.sdccd.cisc191.server;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Tracks server-wide match statistics shared by many gRPC request threads.
+ * Tracks server-wide match statistics shared by multiple gRPC request threads.
  */
 public class MatchStatistics {
 
-    // Thread-safe counters
     private final AtomicInteger joinedMatchCount = new AtomicInteger(0);
     private final AtomicInteger completedMatchCount = new AtomicInteger(0);
 
-    /** Thread-safe join counter increment. */
+    /** Thread-safe increment for joined matches. */
     public void recordJoin() {
         joinedMatchCount.incrementAndGet();
     }
 
-    /** Thread-safe completion counter increment. */
+    /** Thread-safe increment for completed matches. */
     public void recordCompletion() {
         completedMatchCount.incrementAndGet();
     }
@@ -30,10 +29,8 @@ public class MatchStatistics {
     }
 
     /**
-     * Return a readable, thread-safe statistics summary.
-     *
-     * Format:
-     * Server stats: 3 joined, 2 completed
+     * Returns a readable server stats line.
+     * Format: Server stats: 3 joined, 2 completed
      */
     public String buildStatusLine() {
         return "Server stats: "

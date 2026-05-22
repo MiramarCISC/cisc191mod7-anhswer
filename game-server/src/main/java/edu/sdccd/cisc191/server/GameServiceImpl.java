@@ -19,13 +19,11 @@ public class GameServiceImpl extends GameServiceGrpc.GameServiceImplBase {
             JoinMatchRequest request,
             StreamObserver<JoinMatchResponse> responseObserver
     ) {
-        String playerName = (request.getPlayerName() == null || request.getPlayerName().isBlank())
-                ? "Player"
-                : request.getPlayerName().trim();
+        String playerName =
+                request.getPlayerName().isBlank() ? "Player" : request.getPlayerName();
 
-        String difficulty = (request.getDifficulty() == null || request.getDifficulty().isBlank())
-                ? "Normal"
-                : request.getDifficulty().trim();
+        String difficulty =
+                request.getDifficulty().isBlank() ? "Normal" : request.getDifficulty();
 
         boolean ranked = request.getRanked();
         String matchId = UUID.randomUUID().toString();
@@ -53,10 +51,12 @@ public class GameServiceImpl extends GameServiceGrpc.GameServiceImplBase {
 
         JoinMatchResponse response = JoinMatchResponse.newBuilder()
                 .setMatchId(matchId)
-                .setPlayerName(playerName)
-                .setOpponentName(opponentName)
-                .setMessage("Joined " + (ranked ? "ranked" : "casual")
-                        + " match on " + difficulty + " difficulty successfully")
+                .setPlayerName(match.playerName())
+                .setOpponentName(match.opponentName())
+                .setMessage(
+                        "Joined " + match.matchType() + " match " + matchId +
+                                " on " + difficulty + " difficulty. Click Play Match to continue."
+                )
                 .setSummary(summary)
                 .build();
 
@@ -64,9 +64,6 @@ public class GameServiceImpl extends GameServiceGrpc.GameServiceImplBase {
         responseObserver.onCompleted();
     }
 
-    /**
-     * Server-side summary helper
-     */
     public static String buildJoinSummary(
             String matchId,
             String playerName,
@@ -78,12 +75,20 @@ public class GameServiceImpl extends GameServiceGrpc.GameServiceImplBase {
             return "No match";
         }
 
-        String p = (playerName == null || playerName.isBlank()) ? "Player" : playerName.trim();
-        String o = (opponentName == null || opponentName.isBlank()) ? "Bot" : opponentName.trim();
-        String d = (difficulty == null || difficulty.isBlank()) ? "Normal" : difficulty.trim();
-        String type = ranked ? "ranked" : "casual";
+        String resolvedPlayer =
+                (playerName == null || playerName.isBlank()) ? "Player" : playerName.trim();
 
-        return "Match " + matchId + ": " + p + " vs " + o + " (" + d + ", " + type + ")";
+        String resolvedOpponent =
+                (opponentName == null || opponentName.isBlank()) ? "Bot" : opponentName.trim();
+
+        String resolvedDifficulty =
+                (difficulty == null || difficulty.isBlank()) ? "Normal" : difficulty.trim();
+
+        String rankedLabel = ranked ? "ranked" : "casual";
+
+        return "Match " + matchId.trim() + ": "
+                + resolvedPlayer + " vs " + resolvedOpponent
+                + " (" + resolvedDifficulty + ", " + rankedLabel + ")";
     }
 
     @Override
@@ -116,8 +121,12 @@ public class GameServiceImpl extends GameServiceGrpc.GameServiceImplBase {
                 .setWinnerName(winner)
                 .setLoserName(loser)
                 .setPlayerWon(playerWon)
-                .setMessage("Server result: " + winner + " defeated " + loser
-                        + " in a " + match.matchType() + " " + match.difficulty() + " match.")
+                .setMessage(
+                        "Server result: " + winner +
+                                " defeated " + loser +
+                                " in a " + match.matchType() +
+                                " " + match.difficulty() + " match."
+                )
                 .build();
 
         responseObserver.onNext(response);
@@ -129,9 +138,8 @@ public class GameServiceImpl extends GameServiceGrpc.GameServiceImplBase {
             MatchHistoryRequest request,
             StreamObserver<MatchHistoryResponse> responseObserver
     ) {
-        String playerName = (request.getPlayerName() == null || request.getPlayerName().isBlank())
-                ? "Player"
-                : request.getPlayerName().trim();
+        String playerName =
+                request.getPlayerName().isBlank() ? "Player" : request.getPlayerName();
 
         MatchHistoryResponse response = MatchHistoryResponse.newBuilder()
                 .addMatches(playerName + " vs Bot: Win")
