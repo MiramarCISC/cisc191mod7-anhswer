@@ -44,7 +44,6 @@ public class GameController {
     private CheckBox rankedMatchCheckBox;
 
     private final MatchViewModel match = new MatchViewModel();
-
     private final GameGrpcClient grpcClient = new GameGrpcClient("localhost", 50051);
 
     @FXML
@@ -64,15 +63,9 @@ public class GameController {
         boolean ranked = rankedMatchCheckBox.isSelected();
 
         statusLabel.setText("Status: Joining match...");
-        matchLog.appendText("Joining " + (ranked ? "ranked" : "casual")
-                + " match as " + playerName
-                + " on " + difficulty + " difficulty...\n");
+        matchLog.appendText(buildJoinLogMessage(playerName, difficulty, ranked) + "\n");
 
-        Task<JoinMatchResponse> task = grpcClient.joinMatchTask(
-                playerName,
-                difficulty,
-                ranked
-        );
+        Task<JoinMatchResponse> task = grpcClient.joinMatchTask(playerName, difficulty, ranked);
 
         task.setOnSucceeded(event -> {
             JoinMatchResponse response = task.getValue();
@@ -108,10 +101,8 @@ public class GameController {
         statusLabel.setText("Status: Playing match...");
         matchLog.appendText("Server is choosing a random winner...\n");
 
-        Task<MatchResultResponse> task = grpcClient.playMatchTask(
-                match.getMatchId(),
-                match.getPlayer().getName()
-        );
+        Task<MatchResultResponse> task =
+                grpcClient.playMatchTask(match.getMatchId(), match.getPlayer().getName());
 
         task.setOnSucceeded(event -> {
             MatchResultResponse response = task.getValue();
@@ -169,13 +160,8 @@ public class GameController {
     }
 
     private String getPlayerName() {
-        String typedName = playerNameField.getText();
-
-        if (typedName == null || typedName.isBlank()) {
-            return "Player";
-        }
-
-        return typedName.trim();
+        String typed = playerNameField.getText();
+        return (typed == null || typed.isBlank()) ? "Player" : typed.trim();
     }
 
     private void updateView() {
@@ -183,54 +169,56 @@ public class GameController {
             playerLabel.setText("Player: " + match.getPlayer().getName());
             opponentLabel.setText("Opponent: " + match.getOpponent().getName());
 
-            if (match.getWinnerName().isBlank()) {
-                winnerLabel.setText("Winner: TBD");
-            } else {
-                winnerLabel.setText("Winner: " + match.getWinnerName());
-            }
+            winnerLabel.setText(
+                    match.getWinnerName().isBlank()
+                            ? "Winner: TBD"
+                            : "Winner: " + match.getWinnerName()
+            );
 
             if (matchSummaryLabel != null) {
-                matchSummaryLabel.setText("Summary: "
-                        + match.buildMatchSummary(difficultyComboBox.getValue(), rankedMatchCheckBox.isSelected()));
+                matchSummaryLabel.setText(
+                        "Summary: " + match.buildMatchSummary(
+                                difficultyComboBox.getValue(),
+                                rankedMatchCheckBox.isSelected()
+                        )
+                );
             }
         });
     }
 
-    /**
-     * TODO 3: Complete this controller helper.
-     *
-     * Return exactly:
-     * Joining ranked match as Ada on Hard difficulty...
-     * or:
-     * Joining casual match as Ada on Normal difficulty...
-     *
-     * Requirements:
-     * - Use "Player" when playerName is null or blank.
-     * - Use "Normal" when difficulty is null or blank.
-     * - Trim playerName and difficulty.
-     */
+    // ✅ COMBINED VERSION (safe + readable + correct)
     public static String buildJoinLogMessage(String playerName, String difficulty, boolean ranked) {
-        return "TODO: build join log message";
+        String safePlayer = (playerName == null || playerName.isBlank())
+                ? "Player"
+                : playerName.trim();
+
+        String safeDifficulty = (difficulty == null || difficulty.isBlank())
+                ? "Normal"
+                : difficulty.trim();
+
+        String matchType = ranked ? "ranked" : "casual";
+
+        return String.format(
+                "Joining %s match as %s on %s difficulty...",
+                matchType,
+                safePlayer,
+                safeDifficulty
+        );
     }
 
-    /**
-     * TODO 8: Complete this helper so UI updates are safe from any thread.
-     *
-     * JavaFX controls must be changed on the JavaFX Application Thread.
-     * Requirements:
-     * - If action is null, do nothing.
-     * - If already on the JavaFX Application Thread, run action immediately.
-     * - Otherwise, schedule it with Platform.runLater(action).
-     */
     public static void runOnFxThread(Runnable action) {
-        if (action != null) {
+        if (action == null) return;
+
+        if (Platform.isFxApplicationThread()) {
             action.run();
+        } else {
+            Platform.runLater(action);
         }
     }
 
     private void runInBackground(Task<?> task) {
-        Thread thread = new Thread(task);
-        thread.setDaemon(true);
-        thread.start();
+        Thread t = new Thread(task);
+        t.setDaemon(true);
+        t.start();
     }
 }

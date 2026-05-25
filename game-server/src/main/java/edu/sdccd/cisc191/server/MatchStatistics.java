@@ -1,44 +1,41 @@
 package edu.sdccd.cisc191.server;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Tracks server-wide match statistics shared by many gRPC request threads.
  */
 public class MatchStatistics {
 
-    // TODO 9: Replace these counters with a thread-safe design.
-    // Recommended: AtomicInteger joinedMatchCount and AtomicInteger completedMatchCount.
-    private int joinedMatchCount = 0;
-    private int completedMatchCount = 0;
+    private final AtomicInteger joinedMatchCount = new AtomicInteger(0);
+    private final AtomicInteger completedMatchCount = new AtomicInteger(0);
 
-    /**
-     * TODO 9: Make this update thread-safe.
-     */
     public void recordJoin() {
-        joinedMatchCount = joinedMatchCount + 1;
+        joinedMatchCount.incrementAndGet();
     }
 
-    /**
-     * TODO 9: Make this update thread-safe.
-     */
     public void recordCompletion() {
-        completedMatchCount = completedMatchCount + 1;
+        completedMatchCount.incrementAndGet();
     }
 
     public int getJoinedMatchCount() {
-        return joinedMatchCount;
+        return joinedMatchCount.get();
     }
 
     public int getCompletedMatchCount() {
-        return completedMatchCount;
+        return completedMatchCount.get();
     }
 
     /**
-     * TODO 9: Return a readable, thread-safe statistics summary.
-     *
+     * Return a readable, thread-safe statistics summary.
      * Expected format:
      * Server stats: 3 joined, 2 completed
      */
     public String buildStatusLine() {
-        return "TODO: server stats";
+        return String.format(
+                "Server stats: %d joined, %d completed",
+                joinedMatchCount.get(),
+                completedMatchCount.get()
+        );
     }
 }

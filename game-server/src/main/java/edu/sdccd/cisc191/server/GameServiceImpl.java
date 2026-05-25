@@ -1,12 +1,6 @@
 package edu.sdccd.cisc191.server;
 
-import edu.sdccd.cisc191.grpc.GameServiceGrpc;
-import edu.sdccd.cisc191.grpc.JoinMatchRequest;
-import edu.sdccd.cisc191.grpc.JoinMatchResponse;
-import edu.sdccd.cisc191.grpc.MatchHistoryRequest;
-import edu.sdccd.cisc191.grpc.MatchHistoryResponse;
-import edu.sdccd.cisc191.grpc.MatchResultResponse;
-import edu.sdccd.cisc191.grpc.PlayMatchRequest;
+import edu.sdccd.cisc191.grpc.*;
 import io.grpc.stub.StreamObserver;
 
 import java.util.Map;
@@ -51,28 +45,25 @@ public class GameServiceImpl extends GameServiceGrpc.GameServiceImplBase {
                 .setMatchId(matchId)
                 .setPlayerName(match.playerName())
                 .setOpponentName(match.opponentName())
-                .setMessage("Joined " + match.matchType() + " match " + matchId
-                        + " on " + difficulty + " difficulty. Click Play Match to let the server choose a winner.")
+                .setMessage(
+                        "Joined " + match.matchType() +
+                                " match " + matchId +
+                                " on " + difficulty +
+                                " difficulty. Click Play Match to continue."
+                )
+                .setSummary(buildJoinSummary(
+                        matchId,
+                        match.playerName(),
+                        match.opponentName(),
+                        difficulty,
+                        ranked
+                ))
                 .build();
 
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
 
-    /**
-     * TODO 6: Complete this server-side summary helper, then use it in JoinMatchResponse
-     * after adding the new summary field to the .proto file.
-     *
-     * Expected format:
-     * Match match-001: Ada vs Bot (Hard, ranked)
-     *
-     * Requirements:
-     * - Use "No match" when matchId is null or blank.
-     * - Use "Player" when playerName is null or blank.
-     * - Use "Bot" when opponentName is null or blank.
-     * - Use "Normal" when difficulty is null or blank.
-     * - Use "ranked" when ranked is true, otherwise "casual".
-     */
     public static String buildJoinSummary(
             String matchId,
             String playerName,
@@ -80,7 +71,36 @@ public class GameServiceImpl extends GameServiceGrpc.GameServiceImplBase {
             String difficulty,
             boolean ranked
     ) {
-        return "TODO: build join summary";
+
+        if (matchId == null || matchId.isBlank()) {
+            return "No match";
+        }
+
+        String safePlayer =
+                (playerName == null || playerName.isBlank())
+                        ? "Player"
+                        : playerName.trim();
+
+        String safeOpponent =
+                (opponentName == null || opponentName.isBlank())
+                        ? "Bot"
+                        : opponentName.trim();
+
+        String safeDifficulty =
+                (difficulty == null || difficulty.isBlank())
+                        ? "Normal"
+                        : difficulty.trim();
+
+        String matchType = ranked ? "ranked" : "casual";
+
+        return String.format(
+                "Match %s: %s vs %s (%s, %s)",
+                matchId,
+                safePlayer,
+                safeOpponent,
+                safeDifficulty,
+                matchType
+        );
     }
 
     @Override
@@ -113,8 +133,12 @@ public class GameServiceImpl extends GameServiceGrpc.GameServiceImplBase {
                 .setWinnerName(winner)
                 .setLoserName(loser)
                 .setPlayerWon(playerWon)
-                .setMessage("Server result: " + winner + " defeated " + loser + " in a "
-                        + match.matchType() + " " + match.difficulty() + " match.")
+                .setMessage(
+                        "Server result: " + winner +
+                                " defeated " + loser +
+                                " in a " + match.matchType() +
+                                " " + match.difficulty() + " match."
+                )
                 .build();
 
         responseObserver.onNext(response);
