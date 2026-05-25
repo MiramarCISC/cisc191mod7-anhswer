@@ -1,63 +1,46 @@
-<?xml version="1.0" encoding="UTF-8"?>
+syntax = "proto3";
 
-    <?import javafx.scene.control.*?>
-    <?import javafx.scene.layout.*?>
+option java_multiple_files = true;
+option java_package = "edu.sdccd.cisc191.grpc";
+option java_outer_classname = "GameProto";
 
-    <BorderPane xmlns="http://javafx.com/javafx"
-    xmlns:fx="http://javafx.com/fxml"
-    fx:controller="edu.sdccd.cisc191.controller.GameController">
+service GameService {
+  rpc JoinMatch(JoinMatchRequest) returns (JoinMatchResponse);
+  rpc PlayMatch(PlayMatchRequest) returns (MatchResultResponse);
+  rpc LoadMatchHistory(MatchHistoryRequest) returns (MatchHistoryResponse);
+}
 
-    <top>
-    <VBox spacing="8" style="-fx-padding: 12; -fx-background-color: #eef5ff;">
-    <Label text="JavaFX gRPC 1v1 Match Client"
-    style="-fx-font-size: 24px; -fx-font-weight: bold;" />
+message JoinMatchRequest {
+  string player_name = 1;
+  string difficulty = 2;
+  bool ranked = 3;
+}
 
-    <Label fx:id="statusLabel"
-    text="Status: Not connected" />
+message JoinMatchResponse {
+  string match_id = 1;
+  string player_name = 2;
+  string opponent_name = 3;
+  string message = 4;
+  string summary = 5;
+}
 
-    <HBox spacing="10">
-    <Label text="Player:" />
-    <TextField fx:id="playerNameField"
-    promptText="Enter player name"
-    prefWidth="180" />
+message PlayMatchRequest {
+  string match_id = 1;
+  string player_name = 2;
+}
 
-    <CheckBox fx:id="rankedMatchCheckBox" text="Ranked" />
+message MatchResultResponse {
+  string match_id = 1;
+  string winner_name = 2;
+  string loser_name = 3;
+  string message = 4;
+  bool player_won = 5;
+}
 
-    <Label text="Difficulty:" />
-    <ComboBox fx:id="difficultyComboBox"
-    prefWidth="120" />
-    </HBox>
+message MatchHistoryRequest {
+  string player_name = 1;
+}
 
-    <!-- ✅ FIXED LOCATION -->
-    <Label fx:id="matchSummaryLabel"
-    text="Summary: No match" />
-    </VBox>
-    </top>
-
-    <center>
-    <TextArea fx:id="matchLog"
-    editable="false"
-    wrapText="true"
-    promptText="Match events will appear here..." />
-    </center>
-
-    <bottom>
-    <VBox spacing="10" style="-fx-padding: 12; -fx-background-color: #f8f8f8;">
-
-    <HBox spacing="20">
-    <Label fx:id="playerLabel" text="Player: Player" />
-    <Label fx:id="opponentLabel" text="Opponent: Opponent" />
-    <Label fx:id="winnerLabel" text="Winner: TBD" />
-</HBox>
-
-    <HBox spacing="10">
-<Button text="Join Match" onAction="#handleJoinMatch" />
-<Button text="Play Match" onAction="#handlePlayMatch" />
-<Button text="Load Match History" onAction="#handleLoadHistory" />
-<Button text="Reset Local View" onAction="#handleResetLocalView" />
-</HBox>
-
-    </VBox>
-    </bottom>
-
-    </BorderPane>
+message MatchHistoryResponse {
+  repeated string matches = 1;
+}
