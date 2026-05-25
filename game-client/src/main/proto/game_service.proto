@@ -21,7 +21,7 @@ message JoinMatchResponse {
   string player_name = 2;
   string opponent_name = 3;
   string message = 4;
-  // TODO 5: Add a server-created summary field here.
+  string summary = 5;
 }
 
 message PlayMatchRequest {

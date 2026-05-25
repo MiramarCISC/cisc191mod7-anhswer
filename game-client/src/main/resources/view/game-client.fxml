@@ -16,6 +16,7 @@
 
     <top>
         <VBox spacing="8" style="-fx-padding: 12; -fx-background-color: #eef5ff;">
+
             <Label text="JavaFX gRPC 1v1 Match Client"
                    style="-fx-font-size: 24px; -fx-font-weight: bold;" />
 
@@ -30,12 +31,14 @@
 
                 <CheckBox fx:id="rankedMatchCheckBox" text="Ranked" />
 
-                <!-- TODO 1: Add the match summary label described in the README. -->
-
                 <Label text="Difficulty:" />
                 <ComboBox fx:id="difficultyComboBox"
                           prefWidth="120" />
             </HBox>
+
+            <!-- Match summary belongs inside top section -->
+            <Label fx:id="matchSummaryLabel" text="Summary: No match" />
+
         </VBox>
     </top>
 
