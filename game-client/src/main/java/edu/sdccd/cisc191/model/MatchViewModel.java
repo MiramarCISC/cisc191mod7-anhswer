@@ -12,6 +12,7 @@ public class MatchViewModel {
     private boolean matchOver;
     private String winnerName = "";
 
+    // thread-safe counter
     private final AtomicInteger completedMatchCount = new AtomicInteger(0);
 
     public String getMatchId() {
@@ -51,9 +52,9 @@ public class MatchViewModel {
     }
 
     /**
-     * Thread-safe update for completed matches.
+     * Thread-safe update for completed match state
      */
-    public synchronized void recordCompletedMatchThreadSafely(String winnerName) {
+    public void recordCompletedMatchThreadSafely(String winnerName) {
         completedMatchCount.incrementAndGet();
         setWinnerName(winnerName);
         matchOver = true;
@@ -68,7 +69,7 @@ public class MatchViewModel {
     }
 
     /**
-     * Build match summary for UI.
+     * Build UI match summary
      */
     public String buildMatchSummary(String difficulty, boolean ranked) {
 
@@ -76,18 +77,26 @@ public class MatchViewModel {
             return "No match";
         }
 
-        String resolvedDifficulty =
-                (difficulty == null || difficulty.isBlank()) ? "Normal" : difficulty.trim();
+        String safeDifficulty =
+                (difficulty == null || difficulty.isBlank())
+                        ? "Normal"
+                        : difficulty.trim();
 
-        String rankedLabel = ranked ? "ranked" : "casual";
+        String matchType = ranked ? "ranked" : "casual";
 
-        return "Match " + matchId + ": "
-                + player.getName()
-                + " vs "
-                + opponent.getName()
-                + " (" + resolvedDifficulty + ", " + rankedLabel + ")";
+        return String.format(
+                "Match %s: %s vs %s (%s, %s)",
+                matchId,
+                player.getName(),
+                opponent.getName(),
+                safeDifficulty,
+                matchType
+        );
     }
 
+    /**
+     * Reset UI + state
+     */
     public void resetLocalState() {
         matchId = null;
         player.setName("Player");

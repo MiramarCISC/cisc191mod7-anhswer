@@ -41,24 +41,27 @@ public class GameGrpcClient {
         };
     }
 
+    /**
+     * Build JoinMatchRequest safely (handles null/blank inputs)
+     */
     public static JoinMatchRequest buildJoinMatchRequest(
             String playerName,
             String difficulty,
             boolean ranked
     ) {
-        String resolvedPlayer =
+        String safePlayer =
                 (playerName == null || playerName.isBlank())
                         ? "Player"
                         : playerName.trim();
 
-        String resolvedDifficulty =
+        String safeDifficulty =
                 (difficulty == null || difficulty.isBlank())
                         ? "Normal"
                         : difficulty.trim();
 
         return JoinMatchRequest.newBuilder()
-                .setPlayerName(resolvedPlayer)
-                .setDifficulty(resolvedDifficulty)
+                .setPlayerName(safePlayer)
+                .setDifficulty(safeDifficulty)
                 .setRanked(ranked)
                 .build();
     }
@@ -70,14 +73,9 @@ public class GameGrpcClient {
         return new Task<>() {
             @Override
             protected MatchResultResponse call() {
-
                 PlayMatchRequest request = PlayMatchRequest.newBuilder()
                         .setMatchId(matchId)
-                        .setPlayerName(
-                                (playerName == null || playerName.isBlank())
-                                        ? "Player"
-                                        : playerName.trim()
-                        )
+                        .setPlayerName(playerName)
                         .build();
 
                 return blockingStub.playMatch(request);
@@ -89,13 +87,8 @@ public class GameGrpcClient {
         return new Task<>() {
             @Override
             protected MatchHistoryResponse call() {
-
                 MatchHistoryRequest request = MatchHistoryRequest.newBuilder()
-                        .setPlayerName(
-                                (playerName == null || playerName.isBlank())
-                                        ? "Player"
-                                        : playerName.trim()
-                        )
+                        .setPlayerName(playerName)
                         .build();
 
                 return blockingStub.loadMatchHistory(request);
